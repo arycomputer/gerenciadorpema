@@ -1,13 +1,13 @@
-import SalesTerminal from '@/components/sales-terminal';
+import { UserManagement } from '@/components/user-management';
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
 
-export default function Home() {
+export default function UsersPage() {
   return (
     <main>
-      <AuthGuard>
+      <AuthGuard requiredRole="admin">
         <AppLayout>
-          <SalesTerminal />
+            <UserManagement />
         </AppLayout>
       </AuthGuard>
     </main>

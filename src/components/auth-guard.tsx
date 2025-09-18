@@ -5,17 +5,30 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from './ui/skeleton';
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+interface AuthGuardProps {
+    children: React.ReactNode;
+    requiredRole?: 'admin' | 'vendedor';
+}
+
+export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthenticated, isLoading, router]);
+    if (isLoading) return;
 
-  if (isLoading || !isAuthenticated) {
+    if (!isAuthenticated) {
+      router.replace('/login');
+      return;
+    }
+
+    if (requiredRole && user?.role !== requiredRole) {
+      router.replace('/'); // Redirect to a safe page if role doesn't match
+    }
+
+  }, [isAuthenticated, isLoading, router, user, requiredRole]);
+
+  if (isLoading || !isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
     return (
         <div className="flex flex-col space-y-3 p-8">
           <Skeleton className="h-[125px] w-full rounded-xl" />

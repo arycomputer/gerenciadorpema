@@ -56,9 +56,11 @@ export default function SalesReport() {
     if (!dateRange || !dateRange.from) {
       return allOrders;
     }
-    const toDate = dateRange.to || dateRange.from;
+    const from = startOfDay(dateRange.from);
+    const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+
     return allOrders.filter(order => 
-      isWithinInterval(order.date, { start: dateRange.from!, end: toDate })
+      isWithinInterval(order.date, { start: from, end: to })
     );
   }, [allOrders, dateRange]);
 
@@ -95,6 +97,9 @@ export default function SalesReport() {
     const now = new Date();
     setDateRange({ from: startOfDay(now), to: endOfDay(now) });
   };
+  
+  const availableDates = useMemo(() => allOrders.map(order => order.date), [allOrders]);
+
 
   if (!isClient) {
     return null; // or a loading spinner
@@ -102,28 +107,7 @@ export default function SalesReport() {
 
   return (
     <>
-      <header className="py-4 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md">
-            <BarChart3 className="h-8 w-8" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
-              Relatório de Vendas
-            </h1>
-            <p className="text-muted-foreground">Análise de performance de vendas</p>
-          </div>
-        </div>
-        <Button asChild variant="outline">
-          <Link href="/">
-            <ArrowLeft className="mr-2" />
-            Voltar ao Terminal
-          </Link>
-        </Button>
-      </header>
-      <Separator className="mb-4" />
-
-      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+      <div className="mb-6">
         <Card>
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
@@ -163,6 +147,13 @@ export default function SalesReport() {
                   onSelect={setDateRange}
                   numberOfMonths={2}
                   locale={ptBR}
+                   modifiers={{
+                    available: availableDates,
+                  }}
+                  modifiersClassNames={{
+                    available: 'bg-primary/20',
+                  }}
+                  disabled={(date) => !availableDates.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && !isWithinInterval(date, {start: startOfMonth(new Date()), end: endOfMonth(new Date())})}
                 />
               </PopoverContent>
             </Popover>
@@ -174,7 +165,7 @@ export default function SalesReport() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 p-4 pt-0 sm:p-6 lg:p-8">
+      <div className="grid grid-cols-1 gap-8">
         <Card>
           <CardHeader>
             <CardTitle>Vendas por Dia</CardTitle>

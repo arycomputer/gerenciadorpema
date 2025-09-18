@@ -8,10 +8,6 @@ import type { Product, OrderItem, CompletedOrder } from '@/lib/types';
 import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from './ui/separator';
-import { BarChart3, LogOut, UtensilsCrossed } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from './ui/button';
 import { useAuth } from '@/context/auth-context';
 
 export default function SalesTerminal() {
@@ -22,7 +18,8 @@ export default function SalesTerminal() {
   const [suggestion, setSuggestion] = useState<SuggestNextProductOutput | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
-  const { logout } = useAuth();
+  const { user } = useAuth();
+  const [saleDate, setSaleDate] = useState<Date>(new Date());
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('completedOrders');
@@ -95,7 +92,7 @@ export default function SalesTerminal() {
 
     const newCompletedOrder: CompletedOrder = {
       id: new Date().toISOString(),
-      date: new Date(),
+      date: saleDate,
       items: orderItems,
       total: orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
     };
@@ -111,6 +108,7 @@ export default function SalesTerminal() {
     
     setOrderItems([]);
     setSuggestion(null);
+    setSaleDate(new Date());
     toast({
       title: 'Venda Finalizada!',
       description: 'O pedido foi registrado com sucesso.',
@@ -139,6 +137,13 @@ export default function SalesTerminal() {
       variant: 'destructive'
     });
   };
+  
+  const handleSaleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setSaleDate(date);
+    }
+  };
+
 
   const suggestedProduct = useMemo(() => {
     if (!suggestion) return null;
@@ -146,54 +151,29 @@ export default function SalesTerminal() {
   }, [suggestion, products]);
 
   return (
-    <>
-      <header className="py-4 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        <div className='flex items-center gap-4'>
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md">
-            <UtensilsCrossed className="h-8 w-8" />
-            </div>
-            <div>
-            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
-                Gerenciador Pema
-            </h1>
-            <p className="text-muted-foreground">Sistema de Ponto de Venda</p>
-            </div>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button asChild>
-                <Link href="/reports">
-                    <BarChart3 className="mr-2"/>
-                    Ver Relatórios
-                </Link>
-            </Button>
-            <Button variant="outline" onClick={logout}>
-                <LogOut className="mr-2" />
-                Sair
-            </Button>
-        </div>
-      </header>
-      <Separator className="mb-4" />
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-4 sm:p-6 lg:p-8 pt-0">
-        <div className="lg:col-span-3">
-          <ProductList 
-            products={products}
-            onAddToOrder={addToOrder}
-            onSaveProduct={handleProductSave}
-            onDeleteProduct={handleProductDelete}
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <OrderSummary
-            orderItems={orderItems}
-            onUpdateQuantity={updateQuantity}
-            onCompleteOrder={completeOrder}
-            suggestedProduct={suggestedProduct}
-            suggestionConfidence={suggestion?.confidence}
-            onAddSuggestion={addToOrder}
-            isSuggesting={isSuggesting}
-          />
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="lg:col-span-3">
+        <ProductList 
+          products={products}
+          onAddToOrder={addToOrder}
+          onSaveProduct={handleProductSave}
+          onDeleteProduct={handleProductDelete}
+        />
       </div>
-    </>
+      <div className="lg:col-span-2">
+        <OrderSummary
+          orderItems={orderItems}
+          onUpdateQuantity={updateQuantity}
+          onCompleteOrder={completeOrder}
+          suggestedProduct={suggestedProduct}
+          suggestionConfidence={suggestion?.confidence}
+          onAddSuggestion={addToOrder}
+          isSuggesting={isSuggesting}
+          saleDate={saleDate}
+          onSaleDateChange={handleSaleDateChange}
+          currentUser={user}
+        />
+      </div>
+    </div>
   );
 }

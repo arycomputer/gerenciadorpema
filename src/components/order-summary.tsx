@@ -1,12 +1,18 @@
 'use client';
 
-import type { OrderItem, Product } from '@/lib/types';
+import type { OrderItem, Product, User } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { MinusCircle, PlusCircle, Trash2, Wand2 } from 'lucide-react';
+import { Calendar as CalendarIcon, MinusCircle, PlusCircle, Trash2, Wand2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Skeleton } from './ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
 
 interface OrderSummaryProps {
   orderItems: OrderItem[];
@@ -16,6 +22,9 @@ interface OrderSummaryProps {
   suggestionConfidence?: number | null;
   onAddSuggestion: (product: Product) => void;
   isSuggesting: boolean;
+  saleDate: Date;
+  onSaleDateChange: (date: Date | undefined) => void;
+  currentUser: User | null;
 }
 
 export function OrderSummary({
@@ -26,6 +35,9 @@ export function OrderSummary({
   suggestionConfidence,
   onAddSuggestion,
   isSuggesting,
+  saleDate,
+  onSaleDateChange,
+  currentUser,
 }: OrderSummaryProps) {
   const total = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
@@ -81,6 +93,33 @@ export function OrderSummary({
         {orderItems.length > 0 && (
           <CardFooter className="flex-col items-stretch space-y-4">
             <Separator />
+            {currentUser?.role === 'admin' && (
+               <div className="space-y-2">
+                 <label className="text-sm font-medium">Data da Venda</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !saleDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {saleDate ? format(saleDate, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={saleDate}
+                        onSelect={(d) => onSaleDateChange(d)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+               </div>
+            )}
             <div className="flex justify-between items-center text-xl font-bold">
               <span>Total</span>
               <span className="text-primary">{formatCurrency(total)}</span>
