@@ -25,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {user?.role !== 'vendedor' && (
+          {user?.role === 'admin' && (
              <Button asChild>
                 <Link href="/users">
                     <Users className="mr-2"/>
