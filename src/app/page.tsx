@@ -1,3 +1,9 @@
+import SalesTerminal from '@/components/sales-terminal';
+
 export default function Home() {
-  return <></>;
+  return (
+    <main>
+      <SalesTerminal />
+    </main>
+  );
 }
