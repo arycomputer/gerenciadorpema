@@ -4,21 +4,38 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProductList } from './product-list';
 import { OrderSummary } from './order-summary';
 import { products as initialProducts } from '@/lib/products';
-import type { Product, OrderItem } from '@/lib/types';
+import type { Product, OrderItem, CompletedOrder } from '@/lib/types';
 import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
-import { UtensilsCrossed } from 'lucide-react';
+import { BarChart3, UtensilsCrossed } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from './ui/button';
 
 export default function SalesTerminal() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<string[]>([]);
+  const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([]);
   const [suggestion, setSuggestion] = useState<SuggestNextProductOutput | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const storedOrders = localStorage.getItem('completedOrders');
+    if (storedOrders) {
+      setCompletedOrders(JSON.parse(storedOrders).map((order: any) => ({
+        ...order,
+        date: new Date(order.date)
+      })));
+    }
+    const storedHistory = localStorage.getItem('orderHistory');
+    if (storedHistory) {
+      setOrderHistory(JSON.parse(storedHistory));
+    }
+  }, []);
+  
   const activeProducts = useMemo(() => products.filter((p) => p.active), [products]);
 
   const fetchSuggestion = useCallback(async () => {
@@ -73,8 +90,23 @@ export default function SalesTerminal() {
       });
       return;
     }
-    const newHistory = orderItems.map((item) => item.product.code);
-    setOrderHistory((prevHistory) => [...prevHistory, ...newHistory]);
+
+    const newCompletedOrder: CompletedOrder = {
+      id: new Date().toISOString(),
+      date: new Date(),
+      items: orderItems,
+      total: orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+    };
+    
+    const updatedCompletedOrders = [...completedOrders, newCompletedOrder];
+    setCompletedOrders(updatedCompletedOrders);
+    localStorage.setItem('completedOrders', JSON.stringify(updatedCompletedOrders));
+    
+    const newHistoryItems = orderItems.map((item) => item.product.code);
+    const updatedHistory = [...orderHistory, ...newHistoryItems];
+    setOrderHistory(updatedHistory);
+    localStorage.setItem('orderHistory', JSON.stringify(updatedHistory));
+    
     setOrderItems([]);
     setSuggestion(null);
     toast({
@@ -113,16 +145,24 @@ export default function SalesTerminal() {
 
   return (
     <>
-      <header className="py-4 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-        <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md">
-          <UtensilsCrossed className="h-8 w-8" />
+      <header className="py-4 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        <div className='flex items-center gap-4'>
+            <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md">
+            <UtensilsCrossed className="h-8 w-8" />
+            </div>
+            <div>
+            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+                Gerenciador Pema
+            </h1>
+            <p className="text-muted-foreground">Sistema de Ponto de Venda</p>
+            </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
-            Gerenciador Pema
-          </h1>
-          <p className="text-muted-foreground">Sistema de Ponto de Venda</p>
-        </div>
+        <Button asChild>
+            <Link href="/reports">
+                <BarChart3 className="mr-2"/>
+                Ver Relatórios
+            </Link>
+        </Button>
       </header>
       <Separator className="mb-4" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-4 sm:p-6 lg:p-8 pt-0">

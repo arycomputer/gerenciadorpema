@@ -11,3 +11,10 @@ export type OrderItem = {
   product: Product;
   quantity: number;
 };
+
+export type CompletedOrder = {
+  id: string;
+  date: Date;
+  items: OrderItem[];
+  total: number;
+};
