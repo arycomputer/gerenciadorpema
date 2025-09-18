@@ -22,7 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, BarChart3, Calendar as CalendarIcon } from 'lucide-r-eact';
+import { ArrowLeft, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
