@@ -19,6 +19,7 @@ import { User as UserIcon, Upload } from 'lucide-react';
 const profileFormSchema = z.object({
   password: z.string().optional(),
   avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
+  pixKey: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -34,12 +35,19 @@ export function ProfileForm() {
     defaultValues: {
       password: '',
       avatarUrl: user?.avatarUrl || '',
+      pixKey: user?.pixKey || '',
     },
   });
 
   useEffect(() => {
-    setAvatarPreview(user?.avatarUrl);
-    form.setValue('avatarUrl', user?.avatarUrl || '');
+    if (user) {
+        setAvatarPreview(user.avatarUrl);
+        form.reset({
+            avatarUrl: user.avatarUrl || '',
+            pixKey: user.pixKey || '',
+            password: '',
+        });
+    }
   }, [user, form]);
   
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +67,8 @@ export function ProfileForm() {
     if (!user) return;
     
     const updateData: any = {
-        avatarUrl: data.avatarUrl
+        avatarUrl: data.avatarUrl,
+        pixKey: data.pixKey,
     };
 
     if (data.password) {
@@ -129,6 +138,19 @@ export function ProfileForm() {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
                     </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="pixKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Chave PIX</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Sua chave PIX (CPF, e-mail, etc.)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

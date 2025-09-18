@@ -19,7 +19,7 @@ import { Label } from './ui/label';
 interface OrderSummaryProps {
   orderItems: OrderItem[];
   onUpdateQuantity: (productCode: string, newQuantity: number) => void;
-  onCompleteOrder: () => void;
+  onInitiateCheckout: () => void;
   suggestedProduct: Product | null;
   suggestionConfidence?: number | null;
   onAddSuggestion: (product: Product) => void;
@@ -34,7 +34,7 @@ interface OrderSummaryProps {
 export function OrderSummary({
   orderItems,
   onUpdateQuantity,
-  onCompleteOrder,
+  onInitiateCheckout,
   suggestedProduct,
   suggestionConfidence,
   onAddSuggestion,
@@ -151,7 +151,7 @@ export function OrderSummary({
               <span>Total</span>
               <span className="text-primary">{formatCurrency(total)}</span>
             </div>
-            <Button size="lg" className="w-full font-bold text-lg py-6" onClick={onCompleteOrder}>
+            <Button size="lg" className="w-full font-bold text-lg py-6" onClick={onInitiateCheckout}>
               Finalizar Venda
             </Button>
           </CardFooter>

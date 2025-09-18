@@ -249,6 +249,12 @@ export default function SalesReport() {
                           </li>
                         ))}
                       </ul>
+                       {order.paymentMethod === 'dinheiro' && (
+                        <div className="text-xs text-muted-foreground mt-2">
+                            <p>Valor Pago: {formatCurrency(order.amountGiven || 0)}</p>
+                            <p>Troco: {formatCurrency(order.change || 0)}</p>
+                        </div>
+                       )}
                     </TableCell>
                     <TableCell>
                         <Badge variant="outline" className="gap-1.5">

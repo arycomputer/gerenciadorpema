@@ -20,6 +20,8 @@ export type CompletedOrder = {
   items: OrderItem[];
   total: number;
   paymentMethod: PaymentMethod;
+  amountGiven?: number;
+  change?: number;
 };
 
 export type UserRole = 'admin' | 'vendedor' | 'gerente';
@@ -29,4 +31,5 @@ export type User = {
     password?: string;
     role: UserRole;
     avatarUrl?: string;
+    pixKey?: string;
 }

@@ -9,6 +9,7 @@ import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { PaymentConfirmationDialog } from './payment-confirmation-dialog';
 
 export default function SalesTerminal() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -21,6 +22,8 @@ export default function SalesTerminal() {
   const { user } = useAuth();
   const [saleDate, setSaleDate] = useState<Date>(new Date());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('completedOrders');
@@ -81,8 +84,8 @@ export default function SalesTerminal() {
     });
   };
 
-  const completeOrder = () => {
-    if (orderItems.length === 0) {
+  const handleInitiateCheckout = () => {
+     if (orderItems.length === 0) {
       toast({
         title: 'Pedido Vazio',
         description: 'Adicione itens ao pedido antes de finalizar.',
@@ -90,13 +93,17 @@ export default function SalesTerminal() {
       });
       return;
     }
+    setIsPaymentDialogOpen(true);
+  }
 
+  const completeOrder = (paymentDetails?: { amountGiven: number, change: number}) => {
     const newCompletedOrder: CompletedOrder = {
       id: new Date().toISOString(),
       date: saleDate,
       items: orderItems,
       total: orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
       paymentMethod: paymentMethod,
+      ...paymentDetails
     };
     
     const updatedCompletedOrders = [...completedOrders, newCompletedOrder];
@@ -112,6 +119,8 @@ export default function SalesTerminal() {
     setSuggestion(null);
     setSaleDate(new Date());
     setPaymentMethod('dinheiro');
+    setIsPaymentDialogOpen(false);
+
     toast({
       title: 'Venda Finalizada!',
       description: 'O pedido foi registrado com sucesso.',
@@ -153,32 +162,46 @@ export default function SalesTerminal() {
     return products.find(p => p.code === suggestion.suggestedProductCode);
   }, [suggestion, products]);
 
+  const orderTotal = useMemo(() => {
+    return orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  }, [orderItems]);
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-      <div className="lg:col-span-3">
-        <ProductList 
-          products={activeProducts}
-          onAddToOrder={addToOrder}
-          onSaveProduct={handleProductSave}
-          onDeleteProduct={handleProductDelete}
-        />
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3">
+          <ProductList 
+            products={activeProducts}
+            onAddToOrder={addToOrder}
+            onSaveProduct={handleProductSave}
+            onDeleteProduct={handleProductDelete}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <OrderSummary
+            orderItems={orderItems}
+            onUpdateQuantity={updateQuantity}
+            onInitiateCheckout={handleInitiateCheckout}
+            suggestedProduct={suggestedProduct}
+            suggestionConfidence={suggestion?.confidence}
+            onAddSuggestion={addToOrder}
+            isSuggesting={isSuggesting}
+            saleDate={saleDate}
+            onSaleDateChange={handleSaleDateChange}
+            currentUser={user}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+          />
+        </div>
       </div>
-      <div className="lg:col-span-2">
-        <OrderSummary
-          orderItems={orderItems}
-          onUpdateQuantity={updateQuantity}
-          onCompleteOrder={completeOrder}
-          suggestedProduct={suggestedProduct}
-          suggestionConfidence={suggestion?.confidence}
-          onAddSuggestion={addToOrder}
-          isSuggesting={isSuggesting}
-          saleDate={saleDate}
-          onSaleDateChange={handleSaleDateChange}
-          currentUser={user}
-          paymentMethod={paymentMethod}
-          onPaymentMethodChange={setPaymentMethod}
-        />
-      </div>
-    </div>
+      <PaymentConfirmationDialog 
+        isOpen={isPaymentDialogOpen}
+        onOpenChange={setIsPaymentDialogOpen}
+        orderTotal={orderTotal}
+        paymentMethod={paymentMethod}
+        onConfirm={completeOrder}
+        pixKey={user?.pixKey}
+      />
+    </>
   );
 }
