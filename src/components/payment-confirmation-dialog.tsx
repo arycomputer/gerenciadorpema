@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, Copy, Check } from 'lucide-react';
 import type { PaymentMethod } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PaymentConfirmationDialogProps {
   isOpen: boolean;
@@ -120,13 +121,18 @@ export function PaymentConfirmationDialog({
             <div className="space-y-4 text-center">
                  <p className="text-lg">Total a pagar: <strong className="text-primary">{formatCurrency(orderTotal)}</strong></p>
                  {pixKey ? (
-                    <div className="space-y-2">
-                        <Label>Chave PIX para pagamento:</Label>
-                        <div className="flex items-center justify-center gap-2">
-                            <Input value={pixKey} readOnly className="text-center" />
-                            <Button variant="outline" size="icon" onClick={handleCopyToClipboard}>
-                                {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                            </Button>
+                    <div className="space-y-4 flex flex-col items-center">
+                        <div className="p-4 bg-white rounded-lg">
+                            <QRCodeSVG value={pixKey} size={180} />
+                        </div>
+                        <div className="space-y-2 w-full">
+                            <Label>Ou copie a chave PIX:</Label>
+                            <div className="flex items-center justify-center gap-2">
+                                <Input value={pixKey} readOnly className="text-center" />
+                                <Button variant="outline" size="icon" onClick={handleCopyToClipboard}>
+                                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                  ) : (
