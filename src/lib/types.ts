@@ -19,8 +19,10 @@ export type CompletedOrder = {
   total: number;
 };
 
+export type UserRole = 'admin' | 'vendedor' | 'gerente';
+
 export type User = {
     username: string;
     password?: string;
-    role: 'admin' | 'vendedor';
+    role: UserRole;
 }

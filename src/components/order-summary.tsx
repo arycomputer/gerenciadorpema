@@ -93,7 +93,7 @@ export function OrderSummary({
         {orderItems.length > 0 && (
           <CardFooter className="flex-col items-stretch space-y-4">
             <Separator />
-            {currentUser?.role === 'admin' && (
+            {currentUser?.role !== 'vendedor' && (
                <div className="space-y-2">
                  <label className="text-sm font-medium">Data da Venda</label>
                   <Popover>

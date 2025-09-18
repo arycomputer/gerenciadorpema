@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/context/auth-context';
-import type { User } from '@/lib/types';
+import type { User, UserRole } from '@/lib/types';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
@@ -64,7 +64,7 @@ import {
 const userFormSchema = z.object({
   username: z.string().min(1, 'Nome de usuário é obrigatório'),
   password: z.string().min(1, 'Senha é obrigatória'),
-  role: z.enum(['admin', 'vendedor']),
+  role: z.enum(['admin', 'vendedor', 'gerente']),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -132,6 +132,20 @@ export function UserManagement() {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     }
   };
+  
+  const getBadgeVariant = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'default';
+      case 'gerente':
+        return 'secondary';
+      case 'vendedor':
+        return 'outline';
+      default:
+        return 'outline';
+    }
+  }
+
 
   return (
     <>
@@ -159,7 +173,7 @@ export function UserManagement() {
                 <TableRow key={user.username}>
                   <TableCell className="font-medium">{user.username}</TableCell>
                   <TableCell>
-                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                    <Badge variant={getBadgeVariant(user.role)}>
                       {user.role}
                     </Badge>
                   </TableCell>
@@ -241,6 +255,7 @@ export function UserManagement() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="vendedor">Vendedor</SelectItem>
+                        <SelectItem value="gerente">Gerente</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>

@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from './ui/skeleton';
+import type { UserRole } from '@/lib/types';
 
 interface AuthGuardProps {
     children: React.ReactNode;
-    requiredRole?: 'admin' | 'vendedor';
+    requiredRole?: UserRole;
 }
 
 export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
