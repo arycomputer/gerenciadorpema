@@ -6,14 +6,14 @@ import { z } from 'zod';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Upload } from 'lucide-react';
 
 
 const profileFormSchema = z.object({
@@ -27,6 +27,7 @@ export function ProfileForm() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(user?.avatarUrl);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -35,8 +36,24 @@ export function ProfileForm() {
       avatarUrl: user?.avatarUrl || '',
     },
   });
+
+  useEffect(() => {
+    setAvatarPreview(user?.avatarUrl);
+    form.setValue('avatarUrl', user?.avatarUrl || '');
+  }, [user, form]);
   
-  const avatarUrl = form.watch('avatarUrl');
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setAvatarPreview(result);
+        form.setValue('avatarUrl', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = (data: ProfileFormValues) => {
     if (!user) return;
@@ -80,7 +97,7 @@ export function ProfileForm() {
           <CardContent className="space-y-6">
              <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                    <AvatarImage src={avatarUrl} alt={user.username} />
+                    <AvatarImage src={avatarPreview} alt={user.username} />
                     <AvatarFallback>
                         <UserIcon className="h-10 w-10" />
                     </AvatarFallback>
@@ -90,14 +107,28 @@ export function ProfileForm() {
                     <p className="text-sm text-muted-foreground">{user.role}</p>
                 </div>
             </div>
-            <FormField
+             <FormField
               control={form.control}
               name="avatarUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL do Avatar</FormLabel>
+                  <FormLabel>Avatar</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    <div className="relative">
+                      <Button asChild variant="outline" className="w-full justify-start text-muted-foreground">
+                        <label htmlFor="avatar-upload">
+                          <Upload className="mr-2" />
+                          <span>{field.value ? 'Alterar imagem...' : 'Enviar imagem...'}</span>
+                        </label>
+                      </Button>
+                      <Input 
+                        id="avatar-upload"
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
