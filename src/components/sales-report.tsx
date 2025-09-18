@@ -20,7 +20,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ArrowLeft, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -89,6 +89,11 @@ export default function SalesReport() {
   
   const setThisYear = () => {
     setDateRange({ from: startOfYear(new Date()), to: endOfYear(new Date()) });
+  };
+
+  const setToday = () => {
+    const now = new Date();
+    setDateRange({ from: startOfDay(now), to: endOfDay(now) });
   };
 
   if (!isClient) {
@@ -161,6 +166,7 @@ export default function SalesReport() {
                 />
               </PopoverContent>
             </Popover>
+            <Button onClick={setToday}>Hoje</Button>
             <Button onClick={setThisMonth}>Este Mês</Button>
             <Button onClick={setThisYear}>Este Ano</Button>
             <Button variant="ghost" onClick={() => setDateRange(undefined)}>Limpar Filtros</Button>
