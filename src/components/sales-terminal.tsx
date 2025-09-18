@@ -9,9 +9,10 @@ import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from './ui/separator';
-import { BarChart3, UtensilsCrossed } from 'lucide-react';
+import { BarChart3, LogOut, UtensilsCrossed } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
+import { useAuth } from '@/context/auth-context';
 
 export default function SalesTerminal() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -21,6 +22,7 @@ export default function SalesTerminal() {
   const [suggestion, setSuggestion] = useState<SuggestNextProductOutput | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
+  const { logout } = useAuth();
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('completedOrders');
@@ -157,12 +159,18 @@ export default function SalesTerminal() {
             <p className="text-muted-foreground">Sistema de Ponto de Venda</p>
             </div>
         </div>
-        <Button asChild>
-            <Link href="/reports">
-                <BarChart3 className="mr-2"/>
-                Ver Relatórios
-            </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button asChild>
+                <Link href="/reports">
+                    <BarChart3 className="mr-2"/>
+                    Ver Relatórios
+                </Link>
+            </Button>
+            <Button variant="outline" onClick={logout}>
+                <LogOut className="mr-2" />
+                Sair
+            </Button>
+        </div>
       </header>
       <Separator className="mb-4" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-4 sm:p-6 lg:p-8 pt-0">
