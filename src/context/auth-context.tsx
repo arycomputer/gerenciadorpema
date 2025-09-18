@@ -35,7 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUsers(JSON.parse(storedUsers));
       } else {
         // Create a default admin user if no users exist
-        const defaultAdmin = { username: 'admin', password: 'admin', role: 'admin' } as User;
+        const defaultAdmin: User = { 
+            username: 'admin', 
+            password: 'admin', 
+            role: 'admin',
+            avatarUrl: `https://picsum.photos/seed/admin/200/200`
+        };
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultAdmin]));
         setUsers([defaultAdmin]);
       }
@@ -81,11 +86,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (users.some(u => u.username === newUser.username)) {
       throw new Error('Nome de usuário já existe.');
     }
-    persistUsers([...users, newUser]);
+    const userWithAvatar: User = {
+        ...newUser,
+        avatarUrl: `https://picsum.photos/seed/${newUser.username}/200/200`
+    }
+    persistUsers([...users, userWithAvatar]);
   };
 
   const updateUser = (username: string, data: Partial<User>) => {
-    const updatedUsers = users.map(u => (u.username === username ? { ...u, ...data } : u));
+    const updatedUsers = users.map(u => {
+        if (u.username === username) {
+            const updatedUser = { ...u, ...data };
+            // If password is an empty string, don't update it
+            if (data.password === '') {
+                delete updatedUser.password;
+            }
+             // Update session storage if the currently logged-in user is being edited
+            if (user && user.username === username) {
+                const { password, ...userToStore } = updatedUser;
+                sessionStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(userToStore));
+                setUser(userToStore);
+            }
+            return updatedUser;
+        }
+        return u;
+    });
     persistUsers(updatedUsers);
   };
   

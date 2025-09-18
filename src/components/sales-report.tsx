@@ -22,10 +22,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
-import Link from 'next/link';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from './ui/button';
-import { Separator } from './ui/separator';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 
