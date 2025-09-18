@@ -1,6 +1,6 @@
 'use client';
 
-import type { OrderItem, Product, User } from '@/lib/types';
+import type { OrderItem, Product, User, PaymentMethod } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
@@ -12,6 +12,8 @@ import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { Label } from './ui/label';
 
 
 interface OrderSummaryProps {
@@ -25,6 +27,8 @@ interface OrderSummaryProps {
   saleDate: Date;
   onSaleDateChange: (date: Date | undefined) => void;
   currentUser: User | null;
+  paymentMethod: PaymentMethod;
+  onPaymentMethodChange: (method: PaymentMethod) => void;
 }
 
 export function OrderSummary({
@@ -38,6 +42,8 @@ export function OrderSummary({
   saleDate,
   onSaleDateChange,
   currentUser,
+  paymentMethod,
+  onPaymentMethodChange,
 }: OrderSummaryProps) {
   const total = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
@@ -120,6 +126,27 @@ export function OrderSummary({
                   </Popover>
                </div>
             )}
+             <div className="space-y-2">
+                <label className="text-sm font-medium">Forma de Pagamento</label>
+                <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={(value) => onPaymentMethodChange(value as PaymentMethod)}
+                    className="flex gap-4 pt-2"
+                >
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dinheiro" id="dinheiro" />
+                        <Label htmlFor="dinheiro">Dinheiro</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="pix" id="pix" />
+                        <Label htmlFor="pix">PIX</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="cartao" id="cartao" />
+                        <Label htmlFor="cartao">Cartão</Label>
+                    </div>
+                </RadioGroup>
+            </div>
             <div className="flex justify-between items-center text-xl font-bold">
               <span>Total</span>
               <span className="text-primary">{formatCurrency(total)}</span>

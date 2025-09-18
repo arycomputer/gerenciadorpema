@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProductList } from './product-list';
 import { OrderSummary } from './order-summary';
 import { products as initialProducts } from '@/lib/products';
-import type { Product, OrderItem, CompletedOrder } from '@/lib/types';
+import type { Product, OrderItem, CompletedOrder, PaymentMethod } from '@/lib/types';
 import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ export default function SalesTerminal() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [saleDate, setSaleDate] = useState<Date>(new Date());
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('completedOrders');
@@ -95,6 +96,7 @@ export default function SalesTerminal() {
       date: saleDate,
       items: orderItems,
       total: orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+      paymentMethod: paymentMethod,
     };
     
     const updatedCompletedOrders = [...completedOrders, newCompletedOrder];
@@ -109,6 +111,7 @@ export default function SalesTerminal() {
     setOrderItems([]);
     setSuggestion(null);
     setSaleDate(new Date());
+    setPaymentMethod('dinheiro');
     toast({
       title: 'Venda Finalizada!',
       description: 'O pedido foi registrado com sucesso.',
@@ -154,7 +157,7 @@ export default function SalesTerminal() {
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
       <div className="lg:col-span-3">
         <ProductList 
-          products={products}
+          products={activeProducts}
           onAddToOrder={addToOrder}
           onSaveProduct={handleProductSave}
           onDeleteProduct={handleProductDelete}
@@ -172,6 +175,8 @@ export default function SalesTerminal() {
           saleDate={saleDate}
           onSaleDateChange={handleSaleDateChange}
           currentUser={user}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
         />
       </div>
     </div>

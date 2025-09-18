@@ -22,10 +22,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, CreditCard, Landmark, DollarSign } from 'lucide-react';
 import { Button } from './ui/button';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
 
 const chartConfig = {
   vendas: {
@@ -33,6 +34,18 @@ const chartConfig = {
     color: 'hsl(var(--primary))',
   },
 } satisfies ChartConfig;
+
+const paymentMethodIcons = {
+    dinheiro: <DollarSign className="h-4 w-4" />,
+    pix: <Landmark className="h-4 w-4" />,
+    cartao: <CreditCard className="h-4 w-4" />,
+};
+
+const paymentMethodLabels = {
+    dinheiro: 'Dinheiro',
+    pix: 'PIX',
+    cartao: 'Cartão',
+};
 
 export default function SalesReport() {
   const [allOrders, setAllOrders] = useState<CompletedOrder[]>([]);
@@ -211,13 +224,14 @@ export default function SalesReport() {
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Itens</TableHead>
+                  <TableHead>Pagamento</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                    <TableRow>
-                    <TableCell colSpan={3} className="text-center h-24">
+                    <TableCell colSpan={4} className="text-center h-24">
                       Nenhum pedido encontrado para o período selecionado.
                     </TableCell>
                   </TableRow>
@@ -235,6 +249,12 @@ export default function SalesReport() {
                           </li>
                         ))}
                       </ul>
+                    </TableCell>
+                    <TableCell>
+                        <Badge variant="outline" className="gap-1.5">
+                            {paymentMethodIcons[order.paymentMethod]}
+                            {paymentMethodLabels[order.paymentMethod]}
+                        </Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(order.total)}</TableCell>
                   </TableRow>

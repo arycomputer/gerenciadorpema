@@ -12,11 +12,14 @@ export type OrderItem = {
   quantity: number;
 };
 
+export type PaymentMethod = 'dinheiro' | 'pix' | 'cartao';
+
 export type CompletedOrder = {
   id: string;
   date: Date;
   items: OrderItem[];
   total: number;
+  paymentMethod: PaymentMethod;
 };
 
 export type UserRole = 'admin' | 'vendedor' | 'gerente';
