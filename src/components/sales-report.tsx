@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { CompletedOrder } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,13 +17,17 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, BarChart3 } from 'lucide-react';
+import { ArrowLeft, BarChart3, Calendar as CalendarIcon } from 'lucide-r-eact';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 
 const chartConfig = {
   vendas: {
@@ -33,21 +37,32 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function SalesReport() {
-  const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([]);
+  const [allOrders, setAllOrders] = useState<CompletedOrder[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isClient, setIsClient] = useState(false);
-
+  
   useEffect(() => {
     setIsClient(true);
     const storedOrders = localStorage.getItem('completedOrders');
     if (storedOrders) {
-      setCompletedOrders(JSON.parse(storedOrders).map((order: any) => ({
+      setAllOrders(JSON.parse(storedOrders).map((order: any) => ({
         ...order,
         date: new Date(order.date)
       })));
     }
   }, []);
 
-  const salesByDay = completedOrders.reduce((acc, order) => {
+  const filteredOrders = useMemo(() => {
+    if (!dateRange || !dateRange.from) {
+      return allOrders;
+    }
+    const toDate = dateRange.to || dateRange.from;
+    return allOrders.filter(order => 
+      isWithinInterval(order.date, { start: dateRange.from!, end: toDate })
+    );
+  }, [allOrders, dateRange]);
+
+  const salesByDay = filteredOrders.reduce((acc, order) => {
     const date = format(order.date, 'yyyy-MM-dd');
     if (!acc[date]) {
       acc[date] = 0;
@@ -66,6 +81,14 @@ export default function SalesReport() {
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+  
+  const setThisMonth = () => {
+    setDateRange({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) });
+  };
+  
+  const setThisYear = () => {
+    setDateRange({ from: startOfYear(new Date()), to: endOfYear(new Date()) });
   };
 
   if (!isClient) {
@@ -94,6 +117,57 @@ export default function SalesReport() {
         </Button>
       </header>
       <Separator className="mb-4" />
+
+      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Filtros</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap items-center gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                        {format(dateRange.to, "LLL dd, y", { locale: ptBR })}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y", { locale: ptBR })
+                    )
+                  ) : (
+                    <span>Selecione um período</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+            <Button onClick={setThisMonth}>Este Mês</Button>
+            <Button onClick={setThisYear}>Este Ano</Button>
+            <Button variant="ghost" onClick={() => setDateRange(undefined)}>Limpar Filtros</Button>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-8 p-4 pt-0 sm:p-6 lg:p-8">
         <Card>
           <CardHeader>
@@ -146,7 +220,14 @@ export default function SalesReport() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {completedOrders.slice().reverse().map((order) => (
+                {filteredOrders.length === 0 ? (
+                   <TableRow>
+                    <TableCell colSpan={3} className="text-center h-24">
+                      Nenhum pedido encontrado para o período selecionado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                filteredOrders.slice().reverse().map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
                       {format(order.date, 'Pp', { locale: ptBR })}
@@ -162,7 +243,7 @@ export default function SalesReport() {
                     </TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(order.total)}</TableCell>
                   </TableRow>
-                ))}
+                )))}
               </TableBody>
             </Table>
           </CardContent>
