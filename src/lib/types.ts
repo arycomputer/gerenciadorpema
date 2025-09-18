@@ -4,6 +4,7 @@ export type Product = {
   description: string;
   price: number;
   active: boolean;
+  imageUrl?: string;
 };
 
 export type OrderItem = {

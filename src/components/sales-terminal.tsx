@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { ProductList } from './product-list';
 import { OrderSummary } from './order-summary';
-import { products as allProducts } from '@/lib/products';
+import { products as initialProducts } from '@/lib/products';
 import type { Product, OrderItem } from '@/lib/types';
 import type { SuggestNextProductOutput } from '@/ai/flows/suggest-next-product';
 import { getSuggestionAction } from '@/app/actions';
@@ -12,13 +12,14 @@ import { Separator } from './ui/separator';
 import { UtensilsCrossed } from 'lucide-react';
 
 export default function SalesTerminal() {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<string[]>([]);
   const [suggestion, setSuggestion] = useState<SuggestNextProductOutput | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const { toast } = useToast();
 
-  const activeProducts = useMemo(() => allProducts.filter((p) => p.active), []);
+  const activeProducts = useMemo(() => products.filter((p) => p.active), [products]);
 
   const fetchSuggestion = useCallback(async () => {
     if (orderItems.length === 0) {
@@ -82,10 +83,33 @@ export default function SalesTerminal() {
     });
   };
 
+  const handleProductSave = (productToSave: Product) => {
+    setProducts(prevProducts => {
+      const exists = prevProducts.some(p => p.code === productToSave.code);
+      if (exists) {
+        return prevProducts.map(p => p.code === productToSave.code ? productToSave : p);
+      }
+      return [productToSave, ...prevProducts];
+    });
+     toast({
+      title: 'Produto salvo!',
+      description: `O produto "${productToSave.description}" foi salvo com sucesso.`,
+    });
+  };
+
+  const handleProductDelete = (productCode: string) => {
+    setProducts(prevProducts => prevProducts.filter(p => p.code !== productCode));
+     toast({
+      title: 'Produto excluído!',
+      description: 'O produto foi excluído com sucesso.',
+      variant: 'destructive'
+    });
+  };
+
   const suggestedProduct = useMemo(() => {
     if (!suggestion) return null;
-    return allProducts.find(p => p.code === suggestion.suggestedProductCode);
-  }, [suggestion]);
+    return products.find(p => p.code === suggestion.suggestedProductCode);
+  }, [suggestion, products]);
 
   return (
     <>
@@ -103,7 +127,12 @@ export default function SalesTerminal() {
       <Separator className="mb-4" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 p-4 sm:p-6 lg:p-8 pt-0">
         <div className="lg:col-span-3">
-          <ProductList products={activeProducts} onAddToOrder={addToOrder} />
+          <ProductList 
+            products={products}
+            onAddToOrder={addToOrder}
+            onSaveProduct={handleProductSave}
+            onDeleteProduct={handleProductDelete}
+          />
         </div>
         <div className="lg:col-span-2">
           <OrderSummary
