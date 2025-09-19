@@ -28,6 +28,8 @@ import { Button } from './ui/button';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Label } from './ui/label';
 
 const chartConfig = {
   vendas: {
@@ -55,6 +57,7 @@ const paymentMethodLabels = {
 export default function SalesReport() {
   const [allOrders, setAllOrders] = useState<CompletedOrder[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedLocation, setSelectedLocation] = useState<string>('all');
   const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
@@ -68,17 +71,26 @@ export default function SalesReport() {
     }
   }, []);
 
-  const filteredOrders = useMemo(() => {
-    if (!dateRange || !dateRange.from) {
-      return allOrders;
-    }
-    const from = startOfDay(dateRange.from);
-    const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+  const allLocations = useMemo(() => {
+    const locations = new Set(allOrders.map(order => order.location).filter(Boolean));
+    return ['all', ...Array.from(locations)];
+  }, [allOrders]);
 
-    return allOrders.filter(order => 
-      isWithinInterval(order.date, { start: from, end: to })
-    );
-  }, [allOrders, dateRange]);
+  const filteredOrders = useMemo(() => {
+    let orders = allOrders;
+
+    if (dateRange && dateRange.from) {
+      const from = startOfDay(dateRange.from);
+      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+      orders = orders.filter(order => isWithinInterval(order.date, { start: from, end: to }));
+    }
+
+    if (selectedLocation && selectedLocation !== 'all') {
+      orders = orders.filter(order => order.location === selectedLocation);
+    }
+    
+    return orders;
+  }, [allOrders, dateRange, selectedLocation]);
 
   const salesByDay = useMemo(() => {
     const dailySales = filteredOrders.reduce((acc, order) => {
@@ -156,6 +168,11 @@ export default function SalesReport() {
   };
   
   const availableDates = useMemo(() => allOrders.map(order => order.date), [allOrders]);
+  
+  const handleClearFilters = () => {
+    setDateRange(undefined);
+    setSelectedLocation('all');
+  }
 
 
   if (!isClient) {
@@ -170,54 +187,74 @@ export default function SalesReport() {
             <CardTitle>Filtros</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "LLL dd, y", { locale: ptBR })} -{" "}
-                        {format(dateRange.to, "LLL dd, y", { locale: ptBR })}
-                      </>
+             <div className="grid gap-2">
+                <Label htmlFor="date-range">Período</Label>
+                <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                    id="date-range"
+                    variant={"outline"}
+                    className={cn(
+                        "w-[300px] justify-start text-left font-normal",
+                        !dateRange && "text-muted-foreground"
+                    )}
+                    >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                        dateRange.to ? (
+                        <>
+                            {format(dateRange.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                            {format(dateRange.to, "LLL dd, y", { locale: ptBR })}
+                        </>
+                        ) : (
+                        format(dateRange.from, "LLL dd, y", { locale: ptBR })
+                        )
                     ) : (
-                      format(dateRange.from, "LLL dd, y", { locale: ptBR })
-                    )
-                  ) : (
-                    <span>Selecione um período</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                  locale={ptBR}
-                   modifiers={{
-                    available: availableDates,
-                  }}
-                  modifiersClassNames={{
-                    available: 'bg-primary/20',
-                  }}
-                  disabled={(date) => !availableDates.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && !isWithinInterval(date, {start: startOfMonth(new Date()), end: endOfMonth(new Date())})}
-                />
-              </PopoverContent>
-            </Popover>
-            <Button onClick={setToday}>Hoje</Button>
-            <Button onClick={setThisMonth}>Este Mês</Button>
-            <Button onClick={setThisYear}>Este Ano</Button>
-            <Button variant="ghost" onClick={() => setDateRange(undefined)}>Limpar Filtros</Button>
+                        <span>Selecione um período</span>
+                    )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    locale={ptBR}
+                    modifiers={{
+                        available: availableDates,
+                    }}
+                    modifiersClassNames={{
+                        available: 'bg-primary/20',
+                    }}
+                    disabled={(date) => !availableDates.some(d => format(d, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')) && !isWithinInterval(date, {start: startOfMonth(new Date()), end: endOfMonth(new Date())})}
+                    />
+                </PopoverContent>
+                </Popover>
+            </div>
+             <div className="grid gap-2">
+                <Label htmlFor="location">Local</Label>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <SelectTrigger className="w-[180px]" id="location">
+                        <SelectValue placeholder="Selecione um local" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {allLocations.map((loc) => (
+                            <SelectItem key={loc} value={loc}>
+                                {loc === 'all' ? 'Todos os Locais' : loc}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex items-end gap-2 h-full pt-6">
+                <Button onClick={setToday}>Hoje</Button>
+                <Button onClick={setThisMonth}>Este Mês</Button>
+                <Button onClick={setThisYear}>Este Ano</Button>
+                <Button variant="ghost" onClick={handleClearFilters}>Limpar Filtros</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -388,4 +425,6 @@ export default function SalesReport() {
     </>
   );
 }
+
+
 
