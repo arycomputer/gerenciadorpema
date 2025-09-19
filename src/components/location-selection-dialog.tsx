@@ -25,8 +25,8 @@ export function LocationSelectionDialog({
     <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-md" hideCloseButton>
         <DialogHeader>
-          <DialogTitle>Selecionar Local da Venda</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl sm:text-2xl">Selecionar Local da Venda</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base">
             Escolha o local onde esta venda está sendo realizada.
           </DialogDescription>
         </DialogHeader>
@@ -35,7 +35,7 @@ export function LocationSelectionDialog({
                 <Button 
                     key={location}
                     variant="outline"
-                    className="h-20 text-lg"
+                    className="h-20 text-base sm:text-lg"
                     onClick={() => onSelectLocation(location)}
                 >
                     <MapPin className="mr-2 h-5 w-5" />
