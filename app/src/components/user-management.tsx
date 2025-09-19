@@ -29,7 +29,6 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -265,9 +264,6 @@ export function UserManagement() {
                 )}
               />
               <DialogFooter>
-                 <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancelar</Button>
-                 </DialogClose>
                 <Button type="submit">Salvar</Button>
               </DialogFooter>
             </form>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -33,15 +32,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Upload } from 'lucide-react';
-import Image from 'next/image';
 
 const formSchema = z.object({
   code: z.string().min(1, 'Código é obrigatório'),
   description: z.string().min(1, 'Descrição é obrigatória'),
   price: z.coerce.number().min(0, 'Preço deve ser positivo'),
   category: z.string().min(1, 'Categoria é obrigatória'),
-  imageUrl: z.string().optional().or(z.literal('')),
+  imageUrl: z.string().url('URL da imagem inválida').optional().or(z.literal('')),
   active: z.boolean(),
 });
 
@@ -56,8 +53,6 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ isOpen, onOpenChange, onSave, product, allCategories }: ProductFormProps) {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -71,43 +66,26 @@ export function ProductForm({ isOpen, onOpenChange, onSave, product, allCategori
   });
 
   useEffect(() => {
-    if (isOpen) {
-        if (product) {
-        form.reset({
-            code: product.code,
-            description: product.description,
-            price: product.price,
-            category: product.category,
-            imageUrl: product.imageUrl || '',
-            active: product.active,
-        });
-        setImagePreview(product.imageUrl || null);
-        } else {
-        form.reset({
-            code: '',
-            description: '',
-            price: 0,
-            category: '',
-            imageUrl: '',
-            active: true,
-        });
-        setImagePreview(null);
-        }
+    if (product) {
+      form.reset({
+        code: product.code,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        imageUrl: product.imageUrl || '',
+        active: product.active,
+      });
+    } else {
+      form.reset({
+        code: '',
+        description: '',
+        price: 0,
+        category: '',
+        imageUrl: '',
+        active: true,
+      });
     }
-  }, [product, form, isOpen]);
-
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setImagePreview(result);
-        form.setValue('imageUrl', result, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  }, [product, form]);
 
   const onSubmit = (data: ProductFormValues) => {
     onSave(data as Product);
@@ -191,28 +169,9 @@ export function ProductForm({ isOpen, onOpenChange, onSave, product, allCategori
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Imagem</FormLabel>
-                  {imagePreview && (
-                    <div className="relative w-full h-32 rounded-md overflow-hidden my-2">
-                        <Image src={imagePreview} alt="Pré-visualização" fill className="object-cover" />
-                    </div>
-                  )}
+                  <FormLabel>URL da Imagem</FormLabel>
                   <FormControl>
-                     <div className="relative">
-                      <Button asChild variant="outline" className="w-full justify-start text-muted-foreground">
-                        <label htmlFor="image-upload">
-                          <Upload className="mr-2" />
-                          <span>{field.value ? 'Alterar imagem...' : 'Enviar imagem...'}</span>
-                        </label>
-                      </Button>
-                      <Input 
-                        id="image-upload"
-                        type="file" 
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                    </div>
+                    <Input placeholder="https://..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -239,9 +198,6 @@ export function ProductForm({ isOpen, onOpenChange, onSave, product, allCategori
               )}
             />
             <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">Cancelar</Button>
-              </DialogClose>
               <Button type="submit">Salvar</Button>
             </DialogFooter>
           </form>
