@@ -264,6 +264,7 @@ export function UserManagement() {
                 )}
               />
               <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Cancelar</Button>
                 <Button type="submit">Salvar</Button>
               </DialogFooter>
             </form>
