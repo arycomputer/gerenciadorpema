@@ -10,6 +10,7 @@ import { getSuggestionAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { PaymentConfirmationDialog } from './payment-confirmation-dialog';
+import { LocationSelectionDialog } from './location-selection-dialog';
 
 export default function SalesTerminal() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -24,10 +25,15 @@ export default function SalesTerminal() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [location, setLocation] = useState<string>('');
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   
   useEffect(() => {
     if (user?.locations && user.locations.length > 0) {
-      setLocation(user.locations[0]);
+      if (user.locations.length === 1) {
+        setLocation(user.locations[0]);
+      } else {
+        setIsLocationModalOpen(true);
+      }
     }
   }, [user?.locations]);
 
@@ -135,9 +141,7 @@ export default function SalesTerminal() {
     setSuggestion(null);
     setSaleDate(new Date());
     setPaymentMethod('dinheiro');
-    if (user?.locations && user.locations.length > 0) {
-      setLocation(user.locations[0]);
-    }
+
     setIsPaymentDialogOpen(false);
 
     toast({
@@ -184,6 +188,11 @@ export default function SalesTerminal() {
   const orderTotal = useMemo(() => {
     return orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   }, [orderItems]);
+  
+  const handleLocationSelect = (selectedLocation: string) => {
+    setLocation(selectedLocation);
+    setIsLocationModalOpen(false);
+  };
 
   return (
     <>
@@ -223,6 +232,13 @@ export default function SalesTerminal() {
         onConfirm={completeOrder}
         pixKey={user?.pixKey}
       />
+      {user && (
+         <LocationSelectionDialog
+            isOpen={isLocationModalOpen}
+            locations={user.locations || []}
+            onSelectLocation={handleLocationSelect}
+        />
+      )}
     </>
   );
 }
