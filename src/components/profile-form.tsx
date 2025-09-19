@@ -10,16 +10,18 @@ import { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User as UserIcon, Upload } from 'lucide-react';
+import { Textarea } from './ui/textarea';
 
 
 const profileFormSchema = z.object({
   password: z.string().optional(),
   avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   pixKey: z.string().optional(),
+  locations: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -36,6 +38,7 @@ export function ProfileForm() {
       password: '',
       avatarUrl: user?.avatarUrl || '',
       pixKey: user?.pixKey || '',
+      locations: user?.locations?.join(', ') || '',
     },
   });
 
@@ -46,6 +49,7 @@ export function ProfileForm() {
             avatarUrl: user.avatarUrl || '',
             pixKey: user.pixKey || '',
             password: '',
+            locations: user.locations?.join(', ') || '',
         });
     }
   }, [user, form]);
@@ -69,6 +73,7 @@ export function ProfileForm() {
     const updateData: any = {
         avatarUrl: data.avatarUrl,
         pixKey: data.pixKey,
+        locations: data.locations ? data.locations.split(',').map(l => l.trim()).filter(Boolean) : [],
     };
 
     if (data.password) {
@@ -152,6 +157,22 @@ export function ProfileForm() {
                   <FormControl>
                     <Input placeholder="Sua chave PIX (CPF, e-mail, etc.)" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="locations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Locais de Venda</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Balcão, Salão, Delivery" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Separe os diferentes locais de venda por vírgula.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

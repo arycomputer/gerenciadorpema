@@ -22,7 +22,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon, CreditCard, Landmark, DollarSign } from 'lucide-react';
+import { Calendar as CalendarIcon, CreditCard, Landmark, DollarSign, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
@@ -283,6 +283,7 @@ export default function SalesReport() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Local</TableHead>
                   <TableHead>Itens</TableHead>
                   <TableHead>Pagamento</TableHead>
                   <TableHead className="text-right">Total</TableHead>
@@ -291,7 +292,7 @@ export default function SalesReport() {
               <TableBody>
                 {filteredOrders.length === 0 ? (
                    <TableRow>
-                    <TableCell colSpan={4} className="text-center h-24">
+                    <TableCell colSpan={5} className="text-center h-24">
                       Nenhum pedido encontrado para o período selecionado.
                     </TableCell>
                   </TableRow>
@@ -300,6 +301,12 @@ export default function SalesReport() {
                   <TableRow key={order.id}>
                     <TableCell>
                       {format(order.date, 'Pp', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="gap-1.5">
+                        <MapPin className="h-3 w-3" />
+                        {order.location}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <ul className="list-disc pl-4">

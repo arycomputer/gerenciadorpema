@@ -23,6 +23,13 @@ export default function SalesTerminal() {
   const [saleDate, setSaleDate] = useState<Date>(new Date());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('dinheiro');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [location, setLocation] = useState<string>('');
+  
+  useEffect(() => {
+    if (user?.locations && user.locations.length > 0) {
+      setLocation(user.locations[0]);
+    }
+  }, [user?.locations]);
 
 
   useEffect(() => {
@@ -93,6 +100,14 @@ export default function SalesTerminal() {
       });
       return;
     }
+    if (!location) {
+      toast({
+        title: 'Local não selecionado',
+        description: 'Por favor, selecione um local para a venda.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsPaymentDialogOpen(true);
   }
 
@@ -103,6 +118,7 @@ export default function SalesTerminal() {
       items: orderItems,
       total: orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
       paymentMethod: paymentMethod,
+      location: location,
       ...paymentDetails
     };
     
@@ -119,6 +135,9 @@ export default function SalesTerminal() {
     setSuggestion(null);
     setSaleDate(new Date());
     setPaymentMethod('dinheiro');
+    if (user?.locations && user.locations.length > 0) {
+      setLocation(user.locations[0]);
+    }
     setIsPaymentDialogOpen(false);
 
     toast({
@@ -191,6 +210,8 @@ export default function SalesTerminal() {
             currentUser={user}
             paymentMethod={paymentMethod}
             onPaymentMethodChange={setPaymentMethod}
+            location={location}
+            onLocationChange={setLocation}
           />
         </div>
       </div>

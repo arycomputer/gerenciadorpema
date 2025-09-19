@@ -4,7 +4,7 @@ import type { OrderItem, Product, User, PaymentMethod } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { Calendar as CalendarIcon, MinusCircle, PlusCircle, Trash2, Wand2 } from 'lucide-react';
+import { Calendar as CalendarIcon, MinusCircle, PlusCircle, Trash2, Wand2, MapPin } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Skeleton } from './ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -14,6 +14,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Label } from './ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 
 interface OrderSummaryProps {
@@ -29,6 +30,8 @@ interface OrderSummaryProps {
   currentUser: User | null;
   paymentMethod: PaymentMethod;
   onPaymentMethodChange: (method: PaymentMethod) => void;
+  location: string;
+  onLocationChange: (location: string) => void;
 }
 
 export function OrderSummary({
@@ -44,6 +47,8 @@ export function OrderSummary({
   currentUser,
   paymentMethod,
   onPaymentMethodChange,
+  location,
+  onLocationChange,
 }: OrderSummaryProps) {
   const total = orderItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
@@ -53,6 +58,28 @@ export function OrderSummary({
 
   return (
     <div className="space-y-6 sticky top-8">
+       {currentUser?.locations && currentUser.locations.length > 0 && (
+        <Card>
+            <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center">
+                    <MapPin className="mr-2 h-4 w-4" />
+                    Local da Venda
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Select value={location} onValueChange={onLocationChange}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Selecione o local" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {currentUser.locations.map((loc) => (
+                            <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </CardContent>
+        </Card>
+       )}
       <Card>
         <CardHeader>
           <CardTitle>Pedido Atual</CardTitle>

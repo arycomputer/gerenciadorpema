@@ -22,6 +22,7 @@ export type CompletedOrder = {
   paymentMethod: PaymentMethod;
   amountGiven?: number;
   change?: number;
+  location: string;
 };
 
 export type UserRole = 'admin' | 'vendedor' | 'gerente';
@@ -32,4 +33,5 @@ export type User = {
     role: UserRole;
     avatarUrl?: string;
     pixKey?: string;
+    locations?: string[];
 }

@@ -39,7 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: 'admin', 
             password: 'admin', 
             role: 'admin',
-            avatarUrl: `https://picsum.photos/seed/admin/200/200`
+            avatarUrl: `https://picsum.photos/seed/admin/200/200`,
+            locations: ['Balcão', 'Salão', 'Delivery'],
         };
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultAdmin]));
         setUsers([defaultAdmin]);
@@ -68,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (username: string, pass: string) => {
     const foundUser = users.find((u) => u.username === username && u.password === pass);
     if (foundUser) {
-      const { password, ...userToStore } = foundUser;
+      const userToStore = { ...foundUser };
+      delete userToStore.password;
       sessionStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(userToStore));
       setUser(userToStore);
       return true;
@@ -88,7 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const userWithAvatar: User = {
         ...newUser,
-        avatarUrl: `https://picsum.photos/seed/${newUser.username}/200/200`
+        avatarUrl: `https://picsum.photos/seed/${newUser.username}/200/200`,
+        locations: newUser.locations || ['Balcão'],
     }
     persistUsers([...users, userWithAvatar]);
   };
@@ -103,7 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
              // Update session storage if the currently logged-in user is being edited
             if (user && user.username === username) {
-                const { password, ...userToStore } = updatedUser;
+                const userToStore = { ...updatedUser };
+                delete userToStore.password;
                 sessionStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(userToStore));
                 setUser(userToStore);
             }
