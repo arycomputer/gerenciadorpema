@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,15 +34,8 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 3 80% 11%;
     --foreground: 0 0% 98%;
@@ -67,15 +61,47 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .dark.theme-padrão {
+    --background: 3 80% 11%;
+    --foreground: 0 0% 98%;
+    --card: 3 70% 15%;
+    --primary: 4 79% 51%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 4 79% 25%;
+    --accent: 40 85% 47%;
+    --accent-foreground: 3 80% 11%;
+    --border: 4 79% 25%;
+    --ring: 4 79% 51%;
+  }
+
+  .dark.theme-floresta {
+    --background: 120 15% 10%;
+    --foreground: 120 10% 95%;
+    --card: 120 15% 15%;
+    --primary: 130 50% 50%;
+    --primary-foreground: 120 10% 98%;
+    --secondary: 130 50% 25%;
+    --accent: 140 60% 60%;
+    --accent-foreground: 120 15% 10%;
+    --border: 130 50% 25%;
+    --ring: 130 50% 50%;
+  }
+
+  .dark.theme-oceano {
+    --background: 220 25% 10%;
+    --foreground: 220 15% 95%;
+    --card: 220 25% 15%;
+    --primary: 210 60% 55%;
+    --primary-foreground: 220 15% 98%;
+    --secondary: 210 60% 25%;
+    --accent: 190 70% 60%;
+    --accent-foreground: 220 25% 10%;
+    --border: 210 60% 25%;
+    --ring: 210 60% 55%;
+  }
+
 }
 
 @layer base {
