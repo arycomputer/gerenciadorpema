@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import type { CompletedOrder } from '@/lib/types';
+import type { CompletedOrder, Product } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/chart';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, CreditCard, Landmark, DollarSign } from 'lucide-react';
@@ -33,6 +33,10 @@ const chartConfig = {
     label: 'Vendas',
     color: 'hsl(var(--primary))',
   },
+  quantidade: {
+    label: 'Quantidade',
+    color: 'hsl(var(--accent))',
+  }
 } satisfies ChartConfig;
 
 const paymentMethodIcons = {
@@ -75,22 +79,46 @@ export default function SalesReport() {
     );
   }, [allOrders, dateRange]);
 
-  const salesByDay = filteredOrders.reduce((acc, order) => {
-    const date = format(order.date, 'yyyy-MM-dd');
-    if (!acc[date]) {
-      acc[date] = 0;
-    }
-    acc[date] += order.total;
-    return acc;
-  }, {} as Record<string, number>);
+  const salesByDay = useMemo(() => {
+    const dailySales = filteredOrders.reduce((acc, order) => {
+        const date = format(order.date, 'yyyy-MM-dd');
+        if (!acc[date]) {
+        acc[date] = 0;
+        }
+        acc[date] += order.total;
+        return acc;
+    }, {} as Record<string, number>);
 
-  const chartData = Object.entries(salesByDay)
-    .map(([date, total]) => ({
-      date,
-      vendas: total,
-      formattedDate: format(new Date(date), 'dd/MM', { locale: ptBR }),
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return Object.entries(dailySales)
+        .map(([date, total]) => ({
+        date,
+        vendas: total,
+        formattedDate: format(new Date(date), 'dd/MM', { locale: ptBR }),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [filteredOrders]);
+
+
+  const bestSellingProducts = useMemo(() => {
+    const productSales: { [code: string]: { product: Product, quantity: number } } = {};
+
+    filteredOrders.forEach(order => {
+        order.items.forEach(item => {
+            if (productSales[item.product.code]) {
+                productSales[item.product.code].quantity += item.quantity;
+            } else {
+                productSales[item.product.code] = {
+                    product: item.product,
+                    quantity: item.quantity,
+                };
+            }
+        });
+    });
+
+    return Object.values(productSales)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10);
+  }, [filteredOrders]);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -177,43 +205,75 @@ export default function SalesReport() {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vendas por Dia</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <BarChart data={chartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="formattedDate"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                />
-                 <YAxis
-                  tickFormatter={(value) => formatCurrency(Number(value))}
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent 
-                    formatter={(value) => formatCurrency(Number(value))}
-                    labelFormatter={(_, payload) => {
-                       if (payload && payload.length > 0) {
-                        return format(new Date(payload[0].payload.date), "PPP", { locale: ptBR });
-                       }
-                       return "";
-                    }}
-                  />}
-                />
-                <Bar dataKey="vendas" fill="var(--color-vendas)" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <Card className="lg:col-span-3">
+            <CardHeader>
+                <CardTitle>Vendas por Dia</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                <BarChart data={salesByDay} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                    dataKey="formattedDate"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    />
+                    <YAxis
+                    tickFormatter={(value) => formatCurrency(Number(value))}
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    />
+                    <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent 
+                        formatter={(value) => formatCurrency(Number(value))}
+                        labelFormatter={(_, payload) => {
+                        if (payload && payload.length > 0) {
+                            return format(new Date(payload[0].payload.date), "PPP", { locale: ptBR });
+                        }
+                        return "";
+                        }}
+                    />}
+                    />
+                    <Bar dataKey="vendas" fill="var(--color-vendas)" radius={4} />
+                </BarChart>
+                </ChartContainer>
+            </CardContent>
+            </Card>
+            <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Produtos Mais Vendidos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                     <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                        <BarChart data={bestSellingProducts} layout="vertical" margin={{ left: 50, right: 10 }}>
+                            <CartesianGrid horizontal={false} />
+                             <XAxis type="number" dataKey="quantity" hide />
+                            <YAxis 
+                                type="category" 
+                                dataKey="product.description"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={10}
+                                width={120}
+                                tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value}
+                            />
+                            <RechartsTooltip 
+                                cursor={{ fill: 'hsl(var(--muted))' }}
+                                contentStyle={{
+                                    backgroundColor: 'hsl(var(--background))',
+                                    borderColor: 'hsl(var(--border))',
+                                }}
+                            />
+                            <Bar dataKey="quantity" name="Quantidade" fill="var(--color-quantidade)" radius={4} />
+                        </BarChart>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Histórico de Pedidos</CardTitle>
