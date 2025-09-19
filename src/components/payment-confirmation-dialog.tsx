@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Copy, Check } from 'lucide-react';
+import { Info, Copy, Check, CreditCard, LoaderCircle } from 'lucide-react';
 import type { PaymentMethod } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { QRCodeSVG } from 'qrcode.react';
@@ -37,6 +37,7 @@ export function PaymentConfirmationDialog({
 }: PaymentConfirmationDialogProps) {
   const [amountGiven, setAmountGiven] = useState('');
   const [isCopied, setIsCopied] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const change = useMemo(() => {
@@ -51,8 +52,16 @@ export function PaymentConfirmationDialog({
     if (isOpen) {
       setAmountGiven('');
       setIsCopied(false);
+      setIsProcessing(paymentMethod === 'cartao');
+      
+      if (paymentMethod === 'cartao') {
+        const timer = setTimeout(() => {
+          setIsProcessing(false);
+        }, 3000); // Simulate 3 seconds processing time
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, paymentMethod]);
 
   const handleConfirm = () => {
     if (paymentMethod === 'dinheiro') {
@@ -148,9 +157,23 @@ export function PaymentConfirmationDialog({
         );
       case 'cartao':
         return (
-            <div className="space-y-4 text-center">
+            <div className="space-y-6 text-center flex flex-col items-center">
                 <p className="text-lg">Total a pagar: <strong className="text-primary">{formatCurrency(orderTotal)}</strong></p>
-                <p className="text-muted-foreground">Insira o cartão na maquininha e, após a aprovação, clique em "Confirmar Venda".</p>
+                <CreditCard className="h-16 w-16 text-muted-foreground" />
+                {isProcessing ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <LoaderCircle className="h-5 w-5 animate-spin" />
+                    <span>Processando pagamento...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-green-500">
+                    <Check className="h-5 w-5" />
+                    <span>Pagamento Aprovado!</span>
+                  </div>
+                )}
+                <p className="text-muted-foreground text-sm">
+                  {isProcessing ? 'Por favor, aguarde a aprovação da maquininha.' : 'Clique em "Confirmar Venda" para finalizar.'}
+                </p>
             </div>
         );
       default:
@@ -170,7 +193,10 @@ export function PaymentConfirmationDialog({
         <div className="py-4">{renderContent()}</div>
         <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleConfirm}>Confirmar Venda</Button>
+          <Button onClick={handleConfirm} disabled={paymentMethod === 'cartao' && isProcessing}>
+            {paymentMethod === 'cartao' && isProcessing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
+            Confirmar Venda
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
