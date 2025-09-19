@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,8 +12,10 @@ import { useAuth } from '@/context/auth-context';
 import { PaymentConfirmationDialog } from './payment-confirmation-dialog';
 import { LocationSelectionDialog } from './location-selection-dialog';
 
+const PRODUCTS_STORAGE_KEY = 'pema-products';
+
 export default function SalesTerminal() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [orderHistory, setOrderHistory] = useState<string[]>([]);
   const [completedOrders, setCompletedOrders] = useState<CompletedOrder[]>([]);
@@ -36,10 +37,23 @@ export default function SalesTerminal() {
         setLocation(user.locations[0]);
       }
     }
-  }, [user?.locations, user?.role]);
-
+  }, [user?.locations]);
 
   useEffect(() => {
+    try {
+      const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+      if (storedProducts) {
+        setProducts(JSON.parse(storedProducts));
+      } else {
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+        setProducts(initialProducts);
+      }
+    } catch (error) {
+        console.error("Failed to parse products from storage", error);
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+        setProducts(initialProducts);
+    }
+
     const storedOrders = localStorage.getItem('completedOrders');
     if (storedOrders) {
       setCompletedOrders(JSON.parse(storedOrders).map((order: any) => ({
@@ -107,7 +121,7 @@ export default function SalesTerminal() {
       });
       return;
     }
-    if (!location) {
+    if (!location && user?.locations && user.locations.length > 0) {
       toast({
         title: 'Local não selecionado',
         description: 'Por favor, selecione um local para a venda.',
@@ -150,29 +164,6 @@ export default function SalesTerminal() {
       description: 'O pedido foi registrado com sucesso.',
     });
   };
-
-  const handleProductSave = (productToSave: Product) => {
-    setProducts(prevProducts => {
-      const exists = prevProducts.some(p => p.code === productToSave.code);
-      if (exists) {
-        return prevProducts.map(p => p.code === productToSave.code ? productToSave : p);
-      }
-      return [productToSave, ...prevProducts];
-    });
-     toast({
-      title: 'Produto salvo!',
-      description: `O produto "${productToSave.description}" foi salvo com sucesso.`,
-    });
-  };
-
-  const handleProductDelete = (productCode: string) => {
-    setProducts(prevProducts => prevProducts.filter(p => p.code !== productCode));
-     toast({
-      title: 'Produto excluído!',
-      description: 'O produto foi excluído com sucesso.',
-      variant: 'destructive'
-    });
-  };
   
   const handleSaleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -202,8 +193,6 @@ export default function SalesTerminal() {
           <ProductList 
             products={activeProducts}
             onAddToOrder={addToOrder}
-            onSaveProduct={handleProductSave}
-            onDeleteProduct={handleProductDelete}
           />
         </div>
         <div className="lg:col-span-2">
@@ -233,10 +222,10 @@ export default function SalesTerminal() {
         onConfirm={completeOrder}
         pixKey={user?.pixKey}
       />
-      {user && (
+      {user?.locations && user.locations.length > 1 && (
          <LocationSelectionDialog
             isOpen={isLocationModalOpen}
-            locations={user.locations || []}
+            locations={user.locations}
             onSelectLocation={handleLocationSelect}
         />
       )}

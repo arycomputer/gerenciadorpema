@@ -6,48 +6,24 @@ import Image from 'next/image';
 import {
   ChefHat,
   Croissant,
-  EllipsisVertical,
   Flame,
   GlassWater,
-  Pencil,
-  Plus,
   PlusCircle,
   RectangleVertical,
   Ruler,
   Search,
   SearchX,
-  Trash2,
   Utensils,
 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { ProductForm } from './product-form';
 
 interface ProductListProps {
   products: Product[];
   onAddToOrder: (product: Product) => void;
-  onSaveProduct: (product: Product) => void;
-  onDeleteProduct: (productCode: string) => void;
 }
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -62,14 +38,22 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
   '30CM': <Ruler className="h-5 w-5 mr-2" />,
 };
 
-export function ProductList({ products, onAddToOrder, onSaveProduct, onDeleteProduct }: ProductListProps) {
+export function ProductList({ products, onAddToOrder }: ProductListProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  
+  const categories = useMemo(() => {
+    const sortedCategories = [...new Set(products.map((p) => p.category))].sort();
+    const preferredOrder = ['PASTEL', '21CM', '25CM', '30CM', 'GOURMET', 'SALGADO', 'BEBIDA'];
+    return sortedCategories.sort((a, b) => {
+        const indexA = preferredOrder.indexOf(a);
+        const indexB = preferredOrder.indexOf(b);
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+    });
+  }, [products]);
 
-  const categories = useMemo(() => [...new Set(products.map((p) => p.category))].sort(), [products]);
   const [activeTab, setActiveTab] = useState(categories[0] || '');
 
   const filteredProducts = useMemo(() => {
@@ -80,35 +64,10 @@ export function ProductList({ products, onAddToOrder, onSaveProduct, onDeletePro
     );
   }, [products, searchTerm]);
 
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product);
-    setIsFormOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setSelectedProduct(null);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteRequest = (productCode: string) => {
-    setProductToDelete(productCode);
-    setIsAlertOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (productToDelete) {
-      onDeleteProduct(productToDelete);
-    }
-    setIsAlertOpen(false);
-    setProductToDelete(null);
-  };
-
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
   
-  const allCategories = useMemo(() => [...new Set(products.map(p => p.category))].sort(), [products]);
-
   return (
     <>
       <Card className="h-full flex flex-col">
@@ -123,9 +82,6 @@ export function ProductList({ products, onAddToOrder, onSaveProduct, onDeletePro
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button onClick={handleAddNew}>
-              <Plus className="mr-2 h-4 w-4" /> Novo Produto
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="flex-grow flex flex-col min-h-0">
@@ -151,23 +107,6 @@ export function ProductList({ products, onAddToOrder, onSaveProduct, onDeletePro
                         {productsInCategory.map((product) => (
                           <Card key={product.code} className="flex flex-col overflow-hidden">
                              <CardHeader className="p-0 relative">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 h-8 w-8 bg-black/30 hover:bg-black/50 text-white hover:text-white">
-                                    <EllipsisVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleEdit(product)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleDeleteRequest(product.code)} className="text-destructive focus:text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Excluir
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                               <div className="aspect-video w-full relative">
                                 <Image
                                   src={product.imageUrl || '/placeholder.svg'}
@@ -206,27 +145,6 @@ export function ProductList({ products, onAddToOrder, onSaveProduct, onDeletePro
           </Tabs>
         </CardContent>
       </Card>
-      <ProductForm 
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSave={onSaveProduct}
-        product={selectedProduct}
-        allCategories={allCategories}
-      />
-       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o produto.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>Continuar</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

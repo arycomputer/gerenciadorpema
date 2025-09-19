@@ -1,9 +1,8 @@
-
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { BarChart3, LogOut, Users, User as UserIcon, Cog } from 'lucide-react';
+import { BarChart3, LogOut, Users, User as UserIcon, Cog, Package } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -22,6 +21,8 @@ import { useAppSettings } from '@/context/app-settings-context';
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout, user } = useAuth();
   const { appLogo } = useAppSettings();
+
+  const canManage = user?.role === 'admin' || user?.role === 'gerente';
 
   return (
     <>
@@ -47,23 +48,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-4">
           {user?.role === 'admin' && (
-            <>
               <Button asChild>
                   <Link href="/users">
                       <Users className="mr-2"/>
                       Gerenciar Usuários
                   </Link>
               </Button>
-              <ThemeSwitcher />
-            </>
           )}
-          {user?.role !== 'vendedor' && (
-            <Button asChild>
-                <Link href="/reports">
-                <BarChart3 className="mr-2" />
-                Ver Relatórios
-                </Link>
-            </Button>
+          {canManage && (
+             <>
+                <Button asChild>
+                    <Link href="/products">
+                        <Package className="mr-2"/>
+                        Gerenciar Produtos
+                    </Link>
+                </Button>
+                <Button asChild>
+                    <Link href="/reports">
+                    <BarChart3 className="mr-2" />
+                    Ver Relatórios
+                    </Link>
+                </Button>
+                <ThemeSwitcher />
+             </>
           )}
 
           <DropdownMenu>

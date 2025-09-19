@@ -8,7 +8,7 @@ import type { UserRole } from '@/lib/types';
 
 interface AuthGuardProps {
     children: React.ReactNode;
-    requiredRole?: UserRole;
+    requiredRole?: UserRole | UserRole[];
 }
 
 export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
@@ -23,13 +23,16 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
       return;
     }
 
-    if (requiredRole && user?.role !== requiredRole) {
-      router.replace('/'); // Redirect to a safe page if role doesn't match
+    if (requiredRole) {
+      const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+      if (!user?.role || !roles.includes(user.role)) {
+        router.replace('/'); // Redirect to a safe page if role doesn't match
+      }
     }
 
   }, [isAuthenticated, isLoading, router, user, requiredRole]);
 
-  if (isLoading || !isAuthenticated || (requiredRole && user?.role !== requiredRole)) {
+  if (isLoading || !isAuthenticated) {
     return (
         <div className="flex flex-col space-y-3 p-8">
           <Skeleton className="h-[125px] w-full rounded-xl" />
@@ -39,6 +42,21 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
           </div>
         </div>
       );
+  }
+
+  if (requiredRole) {
+    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!user?.role || !roles.includes(user.role)) {
+        return (
+            <div className="flex flex-col space-y-3 p-8">
+              <Skeleton className="h-[125px] w-full rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </div>
+          );
+    }
   }
 
   return <>{children}</>;
