@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -98,6 +99,23 @@ export default function SalesReport() {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [filteredOrders]);
 
+  const salesByLocation = useMemo(() => {
+    const locationSales = filteredOrders.reduce((acc, order) => {
+        const location = order.location || 'N/A';
+        if (!acc[location]) {
+            acc[location] = 0;
+        }
+        acc[location] += order.total;
+        return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(locationSales)
+        .map(([location, total]) => ({
+            location,
+            vendas: total,
+        }))
+        .sort((a, b) => b.vendas - a.vendas);
+  }, [filteredOrders]);
 
   const bestSellingProducts = useMemo(() => {
     const productSales: { [code: string]: { product: Product, quantity: number } } = {};
@@ -205,7 +223,7 @@ export default function SalesReport() {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="lg:col-span-3">
             <CardHeader>
                 <CardTitle>Vendas por Dia</CardTitle>
@@ -242,6 +260,36 @@ export default function SalesReport() {
                 </BarChart>
                 </ChartContainer>
             </CardContent>
+            </Card>
+            <Card className="lg:col-span-1">
+                <CardHeader>
+                    <CardTitle>Vendas por Local</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                        <BarChart data={salesByLocation} layout="vertical" margin={{ left: 10, right: 10 }}>
+                            <CartesianGrid horizontal={false} />
+                             <XAxis type="number" dataKey="vendas" hide tickFormatter={(value) => formatCurrency(Number(value))}/>
+                            <YAxis 
+                                type="category" 
+                                dataKey="location"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={10}
+                                width={80}
+                            />
+                            <RechartsTooltip 
+                                cursor={{ fill: 'hsl(var(--muted))' }}
+                                contentStyle={{
+                                    backgroundColor: 'hsl(var(--background))',
+                                    borderColor: 'hsl(var(--border))',
+                                }}
+                                formatter={(value) => formatCurrency(Number(value))}
+                            />
+                            <Bar dataKey="vendas" name="Vendas" fill="var(--color-vendas)" radius={4} />
+                        </BarChart>
+                    </ChartContainer>
+                </CardContent>
             </Card>
             <Card className="lg:col-span-2">
                 <CardHeader>
@@ -340,3 +388,4 @@ export default function SalesReport() {
     </>
   );
 }
+
