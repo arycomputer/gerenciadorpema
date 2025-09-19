@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Copy, Check, CreditCard, LoaderCircle } from 'lucide-react';
+import { Info, Copy, Check, LoaderCircle, Signal } from 'lucide-react';
 import type { PaymentMethod } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { QRCodeSVG } from 'qrcode.react';
@@ -159,7 +159,7 @@ export function PaymentConfirmationDialog({
         return (
             <div className="space-y-6 text-center flex flex-col items-center">
                 <p className="text-lg">Total a pagar: <strong className="text-primary">{formatCurrency(orderTotal)}</strong></p>
-                <CreditCard className="h-16 w-16 text-muted-foreground" />
+                <Signal className="h-16 w-16 text-muted-foreground" />
                 {isProcessing ? (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <LoaderCircle className="h-5 w-5 animate-spin" />
@@ -172,7 +172,7 @@ export function PaymentConfirmationDialog({
                   </div>
                 )}
                 <p className="text-muted-foreground text-sm">
-                  {isProcessing ? 'Por favor, aguarde a aprovação da maquininha.' : 'Clique em "Confirmar Venda" para finalizar.'}
+                  {isProcessing ? 'Por favor, aproxime o cartão da maquininha.' : 'Clique em "Confirmar Venda" para finalizar.'}
                 </p>
             </div>
         );
