@@ -26,8 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-4">
             <svg
-                width="80"
-                height="50"
+                className="w-20 h-auto"
                 viewBox="0 0 405 251"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -180,3 +179,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </>
   );
 }
+
+    

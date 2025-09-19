@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -33,10 +34,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="inline-flex justify-center items-center mb-4">
-            <div className="p-3 rounded-lg shadow-md">
+            <div className="p-3 rounded-lg">
                 <svg
-                    width="80"
-                    height="50"
+                    className="w-20 h-auto"
                     viewBox="0 0 405 251"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,3 +168,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
