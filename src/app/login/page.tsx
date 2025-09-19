@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { TriangleAlert } from 'lucide-react';
+import { useAppSettings } from '@/context/app-settings-context';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { login } = useAuth();
+  const { appLogo } = useAppSettings();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +38,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="relative w-48 h-28 mx-auto mb-4">
             <Image
-                src="https://storage.googleapis.com/stella-images/pema-logo.png"
+                src={appLogo}
                 alt="Pema Pastel Logo"
                 fill
                 className="object-contain"

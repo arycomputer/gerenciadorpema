@@ -8,6 +8,7 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useAppSettings } from '@/context/app-settings-context';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User as UserIcon, Upload, Trash2, PlusCircle } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 
 const profileFormSchema = z.object({
@@ -28,6 +30,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileForm() {
   const { user, updateUser } = useAuth();
+  const { appLogo, setAppLogo } = useAppSettings();
   const { toast } = useToast();
   const router = useRouter();
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(user?.avatarUrl);
@@ -71,6 +74,22 @@ export function ProfileForm() {
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setAppLogo(result);
+        toast({
+          title: 'Logo Atualizado!',
+          description: 'O novo logo da aplicação foi salvo.',
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = (data: ProfileFormValues) => {
     if (!user) return;
@@ -109,7 +128,7 @@ export function ProfileForm() {
     <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle>Meu Perfil</CardTitle>
-        <CardDescription>Atualize suas informações pessoais.</CardDescription>
+        <CardDescription>Atualize suas informações pessoais e configurações do app.</CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -220,6 +239,28 @@ export function ProfileForm() {
                 </FormItem>
               )}
             />
+            <Separator />
+            <div className="space-y-2">
+                <FormLabel>Logo do App</FormLabel>
+                <div className="relative">
+                    <Button asChild variant="outline" className="w-full justify-start text-muted-foreground">
+                    <label htmlFor="logo-upload">
+                        <Upload className="mr-2" />
+                        <span>Alterar logo...</span>
+                    </label>
+                    </Button>
+                    <Input 
+                    id="logo-upload"
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                </div>
+                <FormDescription>
+                    Faça o upload de um novo logo para a aplicação.
+                </FormDescription>
+            </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4">
             <Button type="submit">Salvar Alterações</Button>

@@ -17,9 +17,11 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { ThemeSwitcher } from './theme-switcher';
+import { useAppSettings } from '@/context/app-settings-context';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { logout, user } = useAuth();
+  const { appLogo } = useAppSettings();
 
   return (
     <>
@@ -28,7 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center gap-4">
             <div className="relative w-32 h-16">
               <Image
-                src="https://storage.googleapis.com/stella-images/pema-logo.png"
+                src={appLogo}
                 alt="Pema Pastel Logo"
                 fill
                 className="object-contain"
