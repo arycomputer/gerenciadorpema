@@ -71,26 +71,28 @@ export function ProductForm({ isOpen, onOpenChange, onSave, product, allCategori
   });
 
   useEffect(() => {
-    if (product) {
-      form.reset({
-        code: product.code,
-        description: product.description,
-        price: product.price,
-        category: product.category,
-        imageUrl: product.imageUrl || '',
-        active: product.active,
-      });
-      setImagePreview(product.imageUrl || null);
-    } else {
-      form.reset({
-        code: '',
-        description: '',
-        price: 0,
-        category: '',
-        imageUrl: '',
-        active: true,
-      });
-      setImagePreview(null);
+    if (isOpen) {
+        if (product) {
+        form.reset({
+            code: product.code,
+            description: product.description,
+            price: product.price,
+            category: product.category,
+            imageUrl: product.imageUrl || '',
+            active: product.active,
+        });
+        setImagePreview(product.imageUrl || null);
+        } else {
+        form.reset({
+            code: '',
+            description: '',
+            price: 0,
+            category: '',
+            imageUrl: '',
+            active: true,
+        });
+        setImagePreview(null);
+        }
     }
   }, [product, form, isOpen]);
 
