@@ -1,12 +1,49 @@
 
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { AuthGuard } from '@/components/auth-guard';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ShoppingCart, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { useAppSettings } from '@/context/app-settings-context';
+
+function SplashScreen() {
+  const { appLogo } = useAppSettings();
+  return (
+    <div className="flex justify-center items-center h-screen bg-background animate-pulse">
+      <div className="relative w-64 h-48">
+        <Image
+          src={appLogo}
+          alt="Pema Pastel Logo"
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
+    </div>
+  );
+}
+
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2 segundos de splash
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <SplashScreen />;
+  }
+
   return (
     <main>
       <AuthGuard>
