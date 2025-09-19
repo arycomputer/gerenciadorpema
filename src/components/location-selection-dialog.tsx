@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,7 +28,7 @@ export function LocationSelectionDialog({
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl">Selecionar Local da Venda</DialogTitle>
           <DialogDescription className="text-sm sm:text-base">
-            Escolha o local onde esta venda está sendo realizada.
+            Para iniciar, escolha o local<br />onde esta venda está sendo realizada.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -29,13 +30,15 @@ export default function SalesTerminal() {
   
   useEffect(() => {
     if (user?.locations && user.locations.length > 0) {
-      if (user.locations.length === 1) {
-        setLocation(user.locations[0]);
-      } else {
+      const isSalesRole = user.role === 'vendedor' || user.role === 'gerente';
+      
+      if (isSalesRole && user.locations.length > 1) {
         setIsLocationModalOpen(true);
+      } else {
+        setLocation(user.locations[0]);
       }
     }
-  }, [user?.locations]);
+  }, [user?.locations, user?.role]);
 
 
   useEffect(() => {
