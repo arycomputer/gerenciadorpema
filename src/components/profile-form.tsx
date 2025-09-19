@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/context/auth-context';
@@ -13,15 +14,14 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User as UserIcon, Upload } from 'lucide-react';
-import { Textarea } from './ui/textarea';
+import { User as UserIcon, Upload, Trash2, PlusCircle } from 'lucide-react';
 
 
 const profileFormSchema = z.object({
   password: z.string().optional(),
   avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   pixKey: z.string().optional(),
-  locations: z.string().optional(),
+  locations: z.array(z.object({ value: z.string().min(1, 'O nome do local não pode estar vazio.') })).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -38,8 +38,13 @@ export function ProfileForm() {
       password: '',
       avatarUrl: user?.avatarUrl || '',
       pixKey: user?.pixKey || '',
-      locations: user?.locations?.join(', ') || '',
+      locations: user?.locations?.map(l => ({ value: l })) || [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "locations"
   });
 
   useEffect(() => {
@@ -49,7 +54,7 @@ export function ProfileForm() {
             avatarUrl: user.avatarUrl || '',
             pixKey: user.pixKey || '',
             password: '',
-            locations: user.locations?.join(', ') || '',
+            locations: user.locations?.map(l => ({ value: l })) || [],
         });
     }
   }, [user, form]);
@@ -73,7 +78,7 @@ export function ProfileForm() {
     const updateData: any = {
         avatarUrl: data.avatarUrl,
         pixKey: data.pixKey,
-        locations: data.locations ? data.locations.split(',').map(l => l.trim()).filter(Boolean) : [],
+        locations: data.locations ? data.locations.map(l => l.value) : [],
     };
 
     if (data.password) {
@@ -161,22 +166,47 @@ export function ProfileForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="locations"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Locais de Venda</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Balcão, Salão, Delivery" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Separe os diferentes locais de venda por vírgula.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-4">
+              <FormLabel>Locais de Venda</FormLabel>
+              {fields.map((field, index) => (
+                <FormField
+                  key={field.id}
+                  control={form.control}
+                  name={`locations.${index}.value`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input placeholder={`Local ${index + 1}`} {...field} />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+               <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => append({ value: "" })}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Adicionar Local
+              </Button>
+              <FormDescription>
+                Adicione os locais de venda onde você trabalha.
+              </FormDescription>
+            </div>
             <FormField
               control={form.control}
               name="password"
