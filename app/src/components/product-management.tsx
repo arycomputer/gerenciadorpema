@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
+import { ImageWithFallback } from './image-with-fallback';
 import type { Product } from '@/lib/types';
 import { products as initialProducts } from '@/lib/products';
 import { useToast } from '@/hooks/use-toast';
@@ -151,8 +151,8 @@ export function ProductManagement() {
                 <TableRow key={product.code}>
                    <TableCell>
                     <div className="relative h-12 w-16 rounded-md overflow-hidden">
-                       <Image
-                         src={product.imageUrl || `https://picsum.photos/seed/${product.code}/400/300`}
+                       <ImageWithFallback
+                         src={product.imageUrl || ''}
                          alt={product.description}
                          fill
                          className="object-cover"
