@@ -208,6 +208,9 @@ export function AccountsPayableManagement() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{editingAccount ? 'Editar Conta' : 'Nova Conta'}</DialogTitle>
+             <DialogDescription>
+                {editingAccount ? 'Edite os detalhes da conta.' : 'Preencha os detalhes para uma nova conta a pagar.'}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
@@ -285,6 +288,7 @@ function AccountsTable({ accounts, formatDate, formatCurrency, handleEdit, handl
     handleDeleteRequest: (id: string) => void;
     handleMarkAsPaid?: (id: string) => void;
 }) {
+    const colSpan = handleMarkAsPaid === undefined ? 6 : 5;
     return (
         <Table>
             <TableHeader>
@@ -300,7 +304,7 @@ function AccountsTable({ accounts, formatDate, formatCurrency, handleEdit, handl
             <TableBody>
             {accounts.length === 0 ? (
                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={colSpan} className="h-24 text-center">
                     Nenhuma conta encontrada.
                     </TableCell>
                 </TableRow>
